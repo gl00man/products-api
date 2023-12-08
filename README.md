@@ -4,6 +4,10 @@
 ## Opis
 Projekt ten jest realizacją wymagań specyfikacji, które obejmują stworzenie REST API.
 
+## TODO
+- dodać stored procedures
+- testy jednostowe/integracyjne
+
 ## Wymagania
 Projekt spełnia następujące wymagania:
 
