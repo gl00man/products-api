@@ -25,7 +25,7 @@ namespace ProductsAPI.Services
         /// <param name="delimiter">Delimiter that splits data in your file.</param>
         /// <param name="cultureInfo">Culture info used in your file.</param>
         /// <returns>List of records, which were succesfully parsed.</returns>
-        public async Task<List<T>> GetRecords<T>(string fileName, byte[] fileBytes, bool hasHeader = true, string delimiter = ";", string cultureInfo = "sk-SK")
+        public async Task<List<T>> GetRecords<T>(string fileName, byte[] fileBytes, bool hasHeader = true, Delimiter delimiter = Delimiter.Semicolon, string cultureInfo = "sk-SK")
         {
             var date = DateTime.Now.ToString("dd.MM.yyyy_hh.mm");
             var filePath = _configuration.GetValue<string>("CsvFolderPath") + $"{date}_{fileName}";
@@ -33,17 +33,19 @@ namespace ProductsAPI.Services
             await File.WriteAllBytesAsync(filePath, fileBytes);
 
             var validRecords = new List<T>();
+            var invalidRecordsCount = 0;
 
             using (var reader = new StreamReader(filePath))
             {
                 var conf = new CsvConfiguration(CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(cultureInfo))
                 {
                     HasHeaderRecord = hasHeader,
-                    Delimiter = delimiter,
+                    Delimiter = $"{(char)delimiter}",
                     BadDataFound = null,
                     ReadingExceptionOccurred = (ex) =>
                     {
                         _logger.LogWarning(ex.Exception, $"Row id: {ex.Exception.Context.Parser.Row} in file {fileName} cannot be parsed.");
+                        invalidRecordsCount++;
                         return false;
                     }
             };
@@ -57,7 +59,17 @@ namespace ProductsAPI.Services
                     }
             }
 
+            _logger.LogInformation($"Successfully parsed: {validRecords.Count()} records.\nUnsuccessfull records: {invalidRecordsCount}");
+
             return validRecords;
+        }
+
+        public enum Delimiter
+        {
+            Semicolon = ';',
+            Space = ' ',
+            Tab = '\t',
+            Comma = ','
         }
     }
 }

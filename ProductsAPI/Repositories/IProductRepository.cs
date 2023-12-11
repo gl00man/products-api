@@ -8,12 +8,12 @@ namespace ProductsAPI.Repositories
         /// Synchronizes database with new data.
         /// </summary>
         /// <returns></returns>
-        public Task SyncDatabase();
+        public Task<int> SyncDatabase();
         /// <summary>
         /// Gets products data by it's SKU.
         /// </summary>
         /// <param name="sku">Products SKU code</param>
         /// <returns>Instance of the found product object.</returns>
-        public Task<Product> GetProduct(string sku);
+        public Task<ProductDTO> GetProduct(string sku);
     }
 }

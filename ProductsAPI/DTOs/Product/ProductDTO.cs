@@ -1,6 +1,8 @@
-﻿namespace ProductsAPI.DTOs.Product
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace ProductsAPI.DTOs.Product
 {
-    public class Product
+    public class ProductDTO
     {
         public string ProductName { get; set; }
         public string Ean { get; set; }

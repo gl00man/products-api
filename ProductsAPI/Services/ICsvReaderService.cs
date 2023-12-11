@@ -15,6 +15,6 @@ namespace ProductsAPI.Services
         /// <param name="delimiter">Delimiter that splits data in your file.</param>
         /// <param name="cultureInfo">Culture info used in your file.</param>
         /// <returns>List of records, which were succesfully parsed.</returns>
-        public Task<List<T>> GetRecords<T>(string fileName, byte[] fileBytes, bool hasHeader = true, string delimiter = ";", string cultureInfo = "sk-SK");
+        public Task<List<T>> GetRecords<T>(string fileName, byte[] fileBytes, bool hasHeader = true, Delimiter delimiter = Delimiter.Semicolon, string cultureInfo = "sk-SK");
     }
 }

@@ -13,7 +13,6 @@ namespace ProductsAPI.Models.Product
         [Column("id")]
         public int Id { get; set; }
         [Column("product_id")]
-        [Description("product_id")]
         [Name("ID")]
         public int ProductId { get; set; }
         [Column("sku")]
@@ -25,7 +24,7 @@ namespace ProductsAPI.Models.Product
         [Column("ean")]
         [Name("EAN")]
         public string? Ean { get; set; }
-        [Column("producer_name")]
+        [Column("producer")]
         [Name("producer_name")]
         public string? ProducerName { get; set; }
         [Column("category")]

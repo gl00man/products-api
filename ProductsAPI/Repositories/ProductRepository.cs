@@ -6,6 +6,9 @@ using Dapper;
 using System.Data;
 using Z.Dapper.Plus;
 using ProductsAPI.Models.Exceptions;
+using ProductsAPI.DTOs.Product;
+using static ProductsAPI.Services.CsvReaderService;
+using Z.BulkOperations;
 
 namespace ProductsAPI.Repositories
 {
@@ -24,7 +27,7 @@ namespace ProductsAPI.Repositories
         /// Synchronizes database with new data.
         /// </summary>
         /// <returns></returns>
-        public async Task SyncDatabase()
+        public async Task<int> SyncDatabase()
         {
             var blobClient = new BlobClient("https://rekturacjazadanie.blob.core.windows.net/zadanie");
 
@@ -33,19 +36,29 @@ namespace ProductsAPI.Repositories
             var productsToSave = products.Where(x => !x.IsWire && x.Shipping == "24h").ToList();
 
             var inventoryFileBytes = blobClient.GetFileBytes("Inventory.csv");
-            var inventory = await _csvReaderService.GetRecords<Inventory>("Inventory.csv", inventoryFileBytes, delimiter: ",", cultureInfo: "en-US");
+            var inventory = await _csvReaderService.GetRecords<Inventory>("Inventory.csv", inventoryFileBytes, delimiter: Delimiter.Comma, cultureInfo: "en-US");
             var inventoryToSave = inventory.Where(x => x.Shipping == "24h").ToList();
 
 
             var pricesFileBytes = blobClient.GetFileBytes("Prices.csv");
-            var pricesToSave = await _csvReaderService.GetRecords<Price>("Prices.csv", pricesFileBytes, false, ",");
+            var pricesToSave = await _csvReaderService.GetRecords<Price>("Prices.csv", pricesFileBytes, false, Delimiter.Comma);
+
+            var resultInfo = new ResultInfo();
 
             using (var connection = _dapperContext.CreateConnection())
             {
+                connection.UseBulkOptions(options =>
+                {
+                    options.UseRowsAffected = true;
+                    options.ResultInfo = resultInfo;
+                });
+
                 connection.BulkInsert(productsToSave);
                 connection.BulkInsert(inventory);
                 connection.BulkInsert(pricesToSave);
             }
+
+            return resultInfo.RowsAffectedInserted;
         }
 
         /// <summary>
@@ -53,14 +66,14 @@ namespace ProductsAPI.Repositories
         /// </summary>
         /// <param name="sku">Products SKU code</param>
         /// <returns>Instance of the found product object.</returns>
-        public async Task<DTOs.Product.Product> GetProduct(string sku)
+        public async Task<ProductDTO> GetProduct(string sku)
         {
             using (var connection = _dapperContext.CreateConnection())
             {
                 var productQuery = $@"SELECT 
                     name as Name,
                     ean as Ean,
-                    producer_name as ProducerName,
+                    producer as ProducerName,
                     category as Category,
                     default_image as DefaultImageUrl,
                     logistic_unit as LogisticUnit,
@@ -80,7 +93,7 @@ namespace ProductsAPI.Repositories
                 var priceQuery = $"SELECT net_price FROM [dbo].[Prices] WHERE sku = '{sku}'";
                 var price = await connection.QuerySingleOrDefaultAsync<decimal>(priceQuery);
 
-                return new DTOs.Product.Product
+                return new ProductDTO
                 {
                     ProductName = product.Name,
                     Ean = product.Ean,

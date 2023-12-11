@@ -28,9 +28,9 @@ namespace ProductsAPI.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<StatusCodeResult> SyncDatabase()
         {
-            await _productRepos.SyncDatabase();
+            var rowsInserted = await _productRepos.SyncDatabase();
 
-            _logger.LogInformation("Database successfully synchronized.");
+            _logger.LogInformation($"Succesfully inserted {rowsInserted} rows into database.");
 
             return StatusCode(StatusCodes.Status204NoContent);
         }
@@ -42,10 +42,10 @@ namespace ProductsAPI.Controllers
         /// <response code="404">Not found.</response>
         /// <response code="500">An error occurred while proccesing your request.</response>
         [HttpGet("GetProduct")]
-        [ProducesResponseType(typeof(Product), 200)]
+        [ProducesResponseType(typeof(ProductDTO), 200)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<Product> GetProduct([FromQuery, BindRequired] string sku)
+        public async Task<ProductDTO> GetProduct([FromQuery, BindRequired] string sku)
         {
             return await _productRepos.GetProduct(sku);
         }

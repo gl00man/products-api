@@ -14,8 +14,9 @@ builder.Services.AddSwaggerGen(options =>
     {
         Version = "v1",
         Title = "Product API",
-        Description = ".NET api created for recrutation process."
+        Description = ".NET api created for recrutation process.",
     });
+    options.CustomSchemaIds(SchemaIdStrategy);
 });
 
 builder.Services.AddSingleton<ApplicationDapperContext>();
@@ -41,3 +42,11 @@ app.UseRouting();
 app.MapControllers();
 
 app.Run();
+
+static string SchemaIdStrategy(Type currentClass)
+{
+    string returnedValue = currentClass.Name;
+    if (returnedValue.EndsWith("DTO"))
+        returnedValue = returnedValue.Replace("DTO", string.Empty);
+    return returnedValue;
+}
