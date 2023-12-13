@@ -70,6 +70,11 @@ namespace ProductsAPI.Repositories
         {
             using (var connection = _dapperContext.CreateConnection())
             {
+                var queryParameters = new
+                {
+                    Sku = sku
+                };
+
                 var productQuery = $@"SELECT 
                     name as Name,
                     ean as Ean,
@@ -78,8 +83,8 @@ namespace ProductsAPI.Repositories
                     default_image as DefaultImageUrl,
                     logistic_unit as LogisticUnit,
                     product_id as ProductId
-                     FROM [dbo].[Products] WHERE sku = '{sku}'";
-                var product = await connection.QuerySingleOrDefaultAsync<Product>(productQuery);
+                     FROM [dbo].[Products] WHERE sku = @Sku";
+                var product = await connection.QuerySingleOrDefaultAsync<Product>(productQuery, queryParameters);
 
                 if (product is null)
                     throw new NotFoundException("Product not found.");
@@ -90,8 +95,8 @@ namespace ProductsAPI.Repositories
                  FROM [dbo].[Inventory] WHERE product_id = {product.ProductId}";
                 var inventory = await connection.QuerySingleOrDefaultAsync<Inventory>(inventoryQuery);
 
-                var priceQuery = $"SELECT net_price FROM [dbo].[Prices] WHERE sku = '{sku}'";
-                var price = await connection.QuerySingleOrDefaultAsync<decimal>(priceQuery);
+                var priceQuery = $"SELECT net_price FROM [dbo].[Prices] WHERE sku = @Sku";
+                var price = await connection.QuerySingleOrDefaultAsync<decimal>(priceQuery, queryParameters);
 
                 return new ProductDTO
                 {
